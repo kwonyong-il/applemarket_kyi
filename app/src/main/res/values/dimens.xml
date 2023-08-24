@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="activity_horizontal_margin">20sp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="list_item_title_size">16sp</dimen>
+    <dimen name="list_item_adress_size2">16dp</dimen>
+    <dimen name="list_item_padding">10dp</dimen>
+    <dimen name="icon_size_width">80sp</dimen>
+    <dimen name="icon_size_height">120sp</dimen>
+    <dimen name="icon_padding">8dp</dimen>
+</resources>
