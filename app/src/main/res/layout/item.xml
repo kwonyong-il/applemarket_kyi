@@ -5,7 +5,7 @@
     android:orientation="horizontal"
     >
     <ImageView
-        android:id="@+id/iconItem"
+        android:id="@+id/item_image"
         android:layout_width="@dimen/icon_size_width"
         android:layout_height="@dimen/icon_size_height"
         android:scaleType="centerCrop"
