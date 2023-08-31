@@ -155,6 +155,25 @@ class MainActivity : AppCompatActivity() {
         adapter.itemClick = object : Adapter.ItemClick {
             override fun onClick(view: View, position: Int) {
                 val intent = Intent(this@MainActivity, DetailActivity::class.java)
+                intent.putExtra(Constants.ITEM_INDEX,position)
+                intent.putExtra(Constants.ITEM_OBJECT,dataList[position])
+                startActivity(intent)
+            }
+        }
+        adapter.itemLongClick = object : Adapter.ItemLongClick{
+            override fun onLongClick(view: View, position: Int) {
+                val deleteDialog = AlertDialog.Builder(this@MainActivity)
+                deleteDialog.setIcon(R.drawable.chat_icon)
+                deleteDialog.setTitle("상품 삭제")
+                deleteDialog.setMessage("상품을 정말로 삭제하시겠습니까?")
+                deleteDialog.setPositiveButton("확인") { _, _ ->
+                    dataList.removeAt(position)
+                    adapter.notifyItemRemoved(position)
+                }
+                deleteDialog.setNegativeButton("취소") {dialog,_ ->
+                    dialog.dismiss()
+                }
+                deleteDialog.show()
             }
         }
         binding.bellImgMain.setOnClickListener{
@@ -168,7 +187,7 @@ class MainActivity : AppCompatActivity() {
             .setIcon(R.drawable.chat_icon)
             .setTitle("종료")
             .setMessage("정말 종료하시겠습니까?")
-            .setPositiveButton("확인") { dialog, _ ->
+            .setPositiveButton("확인") { _, _ ->
                 finish()
             }
             .setNegativeButton("취소") { dialog, _ ->
