@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">applemarket</string>
     <string name="address">내배캠동</string>
+    <string name="temperature"><u>매너온도</u></string>
 </resources>
