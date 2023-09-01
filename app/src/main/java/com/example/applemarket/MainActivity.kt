@@ -1,5 +1,6 @@
 package com.example.applemarket
 
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -218,23 +219,25 @@ class MainActivity : AppCompatActivity() {
             binding.recyclerView.smoothScrollToPosition(0)
         }
 
-        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
-            if (it.resultCode == RESULT_OK){
-                val itemindex = it.data?.getIntExtra("itemIndex", 0) as Int
-                val isLike = it.data?.getBooleanExtra("islike",false) as Boolean
+        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val itemIndex = result.data?.getIntExtra("itemIndex", 0) ?: 0
+                val isItemLiked = result.data?.getBooleanExtra("islike", false) ?: false
 
-                if(isLike) {
-                    dataList[itemindex].isLike = true
-                    dataList[itemindex].Heart += 1
+                val selectedItem = dataList[itemIndex]
+
+                if (isItemLiked) {
+                    selectedItem.isLike = true
+                    selectedItem.Heart++
                 } else {
-                    if (dataList[itemindex].isLike) {
-                        dataList[itemindex].isLike = false
-                        dataList[itemindex].Heart -= 1
+                    if (selectedItem.isLike) {
+                        selectedItem.isLike = false
+                        selectedItem.Heart--
                     }
                 }
-                adapter.notifyItemChanged(itemindex)
-            }
 
+                adapter.notifyItemChanged(itemIndex)
+            }
         }
 
     }

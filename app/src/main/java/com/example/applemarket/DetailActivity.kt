@@ -14,12 +14,14 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetailBinding
 
     private var isLike = false
+    private var position = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        position = intent.getIntExtra(Constants.ITEM_INDEX, 0)
         val item = intent.getParcelableExtra(Constants.ITEM_OBJECT) as MyItem?
         if (item != null) {
             binding.itemImgDetail.setImageResource(item.Img)
@@ -42,7 +44,7 @@ class DetailActivity : AppCompatActivity() {
         )
 
         binding.backImg.setOnClickListener {
-            finish()
+            exit()
         }
 
         binding.iconHeartDetail.setOnClickListener {
@@ -56,6 +58,17 @@ class DetailActivity : AppCompatActivity() {
                 isLike = false
             }
         }
-        }
     }
+    override fun onBackPressed() {
+        exit()
+    }
+
+    fun exit() {
+        val resultIntent = Intent()
+        resultIntent.putExtra("itemIndex", position)
+        resultIntent.putExtra("islike", isLike)
+        setResult(Activity.RESULT_OK, resultIntent)
+        finish()
+    }
+}
 
