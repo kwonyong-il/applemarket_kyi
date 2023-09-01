@@ -11,15 +11,22 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AlphaAnimation
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.applemarket.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
+    lateinit var activityResultLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +43,8 @@ class MainActivity : AppCompatActivity() {
                 1000,
                 "서울 서대문구 창천동",
                 13,
-                25
+                25,
+                false
             )
         )
         dataList.add(
@@ -48,7 +56,8 @@ class MainActivity : AppCompatActivity() {
                 20000,
                 "인천 계양구 귤현동",
                 8,
-                28
+                28,
+                false
             )
         )
         dataList.add(
@@ -60,7 +69,8 @@ class MainActivity : AppCompatActivity() {
                 10000,
                 "수성구 범어동",
                 23,
-                5
+                5,
+                false
             )
         )
         dataList.add(
@@ -72,7 +82,8 @@ class MainActivity : AppCompatActivity() {
                 10000,
                 "해운대구 우제2동",
                 14,
-                17
+                17,
+                false
             )
         )
         dataList.add(
@@ -84,7 +95,8 @@ class MainActivity : AppCompatActivity() {
                 150000,
                 "연제구 연산제8동",
                 22,
-                9
+                9,
+                false
             )
         )
         dataList.add(
@@ -96,7 +108,8 @@ class MainActivity : AppCompatActivity() {
                 50000,
                 "수원시 영통구 원천동",
                 25,
-                16
+                16,
+                false
             )
         )
         dataList.add(
@@ -108,7 +121,8 @@ class MainActivity : AppCompatActivity() {
                 150000,
                 "남구 옥동",
                 142,
-                54
+                54,
+                false
             )
         )
         dataList.add(
@@ -120,7 +134,8 @@ class MainActivity : AppCompatActivity() {
                 180000,
                 "동래구 온천제2동",
                 31,
-                7
+                7,
+                false
             )
         )
         dataList.add(
@@ -132,7 +147,8 @@ class MainActivity : AppCompatActivity() {
                 30000,
                 "원주시 명륜2동",
                 7,
-                28
+                28,
+                false
             )
         )
         dataList.add(
@@ -144,7 +160,8 @@ class MainActivity : AppCompatActivity() {
                 190000,
                 "중구 동화동",
                 40,
-                6
+                6,
+                false
             )
         )
 
@@ -155,32 +172,73 @@ class MainActivity : AppCompatActivity() {
         adapter.itemClick = object : Adapter.ItemClick {
             override fun onClick(view: View, position: Int) {
                 val intent = Intent(this@MainActivity, DetailActivity::class.java)
-                intent.putExtra(Constants.ITEM_INDEX,position)
-                intent.putExtra(Constants.ITEM_OBJECT,dataList[position])
-                startActivity(intent)
+                intent.putExtra(Constants.ITEM_INDEX, position)
+                intent.putExtra(Constants.ITEM_OBJECT, dataList[position])
+                activityResultLauncher.launch(intent)
             }
         }
-        adapter.itemLongClick = object : Adapter.ItemLongClick{
+        adapter.itemLongClick = object : Adapter.ItemLongClick {
             override fun onLongClick(view: View, position: Int) {
                 val deleteDialog = AlertDialog.Builder(this@MainActivity)
                 deleteDialog.setIcon(R.drawable.chat_icon)
                 deleteDialog.setTitle("상품 삭제")
-                deleteDialog.setMessage("상품을 정말로 삭제하시겠습니까?")
                 deleteDialog.setPositiveButton("확인") { _, _ ->
                     dataList.removeAt(position)
                     adapter.notifyItemRemoved(position)
                 }
-                deleteDialog.setNegativeButton("취소") {dialog,_ ->
+                deleteDialog.setNegativeButton("취소") { dialog, _ ->
                     dialog.dismiss()
                 }
                 deleteDialog.show()
             }
         }
-        binding.bellImgMain.setOnClickListener{
+        binding.bellImgMain.setOnClickListener {
             notification()
+        }
+        val fadeIn = AlphaAnimation(0f, 1f).apply { duration = 500 }
+        val fadeOut = AlphaAnimation(1f, 0f).apply { duration = 500 }
+        var isTop = true
+
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                if (dy > 0 && isTop) {
+                    binding.floatingMain.visibility = View.VISIBLE
+                    binding.floatingMain.startAnimation(fadeIn)
+                    isTop = false
+                } else if (dy < 0 && !isTop) {
+                    binding.floatingMain.startAnimation(fadeOut)
+                    binding.floatingMain.visibility = View.GONE
+                    isTop = true
+                }
+            }
+        })
+        binding.floatingMain.setOnClickListener{
+            binding.recyclerView.smoothScrollToPosition(0)
+        }
+
+        activityResultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK){
+                val itemindex = it.data?.getIntExtra("itemIndex", 0) as Int
+                val isLike = it.data?.getBooleanExtra("islike",false) as Boolean
+
+                if(isLike) {
+                    dataList[itemindex].isLike = true
+                    dataList[itemindex].Heart += 1
+                } else {
+                    if (dataList[itemindex].isLike) {
+                        dataList[itemindex].isLike = false
+                        dataList[itemindex].Heart -= 1
+                    }
+                }
+                adapter.notifyItemChanged(itemindex)
+            }
+
         }
 
     }
+
 
     override fun onBackPressed() {
         AlertDialog.Builder(this)
@@ -200,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val builder: NotificationCompat.Builder
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId = "one-channel"
             val channelName = "My Channel One"
             val channel = NotificationChannel(
@@ -233,6 +291,6 @@ class MainActivity : AppCompatActivity() {
             setContentTitle("키워드알림")
             setContentText("설정한 키워드에 대한 알림이 도착했습니다.")
         }
-        manager.notify(11,builder.build())
+        manager.notify(11, builder.build())
     }
 }
